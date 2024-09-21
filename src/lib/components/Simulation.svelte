@@ -1,13 +1,13 @@
 <script lang="ts">
   import { onMount } from "svelte";
   import * as d3 from "d3";
-  import genWatchData from "$lib/assets/gen_watch.json"; // Adjust the path as necessary
+  import genWatchData from "$lib/assets/gen_watch.json";
 
   let svg;
   let width = 800;
   let height = 400;
   let currentTime = 0;
-  let maxTime = Object.keys(genWatchData).length - 1; // Based on data keys
+  let maxTime = Object.keys(genWatchData).length - 1;
   let timeKeys = Object.keys(genWatchData);
   let currentData = genWatchData[timeKeys[currentTime]];
 
@@ -31,7 +31,6 @@
     svgElement.append("g").attr("class", "edges");
     svgElement.append("g").attr("class", "nodes");
 
-    // Create the tooltip
     d3.select("body")
       .append("div")
       .attr("class", "tooltip")
@@ -39,8 +38,9 @@
       .style("visibility", "hidden")
       .style("background-color", "white")
       .style("border", "1px solid #ccc")
-      .style("padding", "5px")
-      .style("border-radius", "5px");
+      .style("padding", "8px")
+      .style("border-radius", "5px")
+      .style("box-shadow", "0px 0px 6px rgba(0, 0, 0, 0.1)");
   }
 
   function drawChart() {
@@ -48,38 +48,38 @@
     const edgesGroup = svgElement.select(".edges");
     const nodesGroup = svgElement.select(".nodes");
 
-    // Clear previous elements
     edgesGroup.selectAll("*").remove();
     nodesGroup.selectAll("*").remove();
 
     const nodes = Object.keys(currentData);
     const tooltip = d3.select(".tooltip");
 
-    // Define positions for nodes (grid layout)
     const positions = [
-      { x: width / 2, y: height / 6 }, // Central Bus
-      { x: width / 4, y: height / 3 }, // Node 1
-      { x: (width / 4) * 3, y: height / 3 }, // Node 2
-      { x: width / 4, y: (height / 6) * 5 }, // Node 3
-      { x: (width / 4) * 3, y: (height / 6) * 5 }, // Node 4
-      // Additional nodes can be added here
-    ].slice(0, nodes.length); // Limit to the number of available nodes
+      { x: width / 2, y: height / 6 },
+      { x: width / 4, y: height / 3 },
+      { x: (width / 4) * 3, y: height / 3 },
+      { x: width / 4, y: (height / 6) * 5 },
+      { x: (width / 4) * 3, y: (height / 6) * 5 },
+    ].slice(0, nodes.length);
 
-    // Create edges
+    // Animate edges
     edgesGroup
       .selectAll("line")
-      .data(nodes.slice(1)) // Skip first node for edges
+      .data(nodes.slice(1))
       .enter()
       .append("line")
-      .attr("x1", positions[0].x) // Connect to central bus
+      .attr("x1", positions[0].x)
       .attr("y1", positions[0].y)
-      .attr("x2", (d, i) => positions[i + 1].x) // Connect to each node
+      .attr("x2", (d, i) => positions[i + 1].x)
       .attr("y2", (d, i) => positions[i + 1].y)
-      .attr("stroke", "black")
+      .attr("stroke", "#555")
       .attr("stroke-width", 2)
-      .attr("stroke-dasharray", "5,5"); // Dashed line for clarity
+      .attr("stroke-dasharray", "5,5")
+      .transition()
+      .duration(500)
+      .attr("stroke", (d) => d3.interpolateBlues(Math.random()));
 
-    // Create nodes as circles
+    // Create and animate nodes
     nodesGroup
       .selectAll("circle")
       .data(nodes)
@@ -87,18 +87,19 @@
       .append("circle")
       .attr("cx", (d, i) => positions[i].x)
       .attr("cy", (d, i) => positions[i].y)
-      .attr("r", 20) // Radius of the node
-      .attr("fill", "lightblue") // Lighter color for visibility
-      .attr("stroke", "darkblue") // Darker stroke for contrast
+      .attr("r", 0) // Start with a small radius
+      .attr("fill", "lightblue")
+      .attr("stroke", "darkblue")
       .attr("stroke-width", 2)
       .on("mouseover", function (event, d) {
         tooltip
           .html(
-            `Voltage: ${currentData[d]?.voltage}<br>Angle: ${currentData[d]?.angle}`,
+            `<strong>Bus: ${d}</strong><br>Voltage: ${currentData[d]?.voltage}<br>Angle: ${currentData[d]?.angle}`,
           )
           .style("visibility", "visible")
           .style("top", event.pageY + 5 + "px")
           .style("left", event.pageX + 5 + "px");
+        d3.select(this).transition().duration(200).attr("r", 25);
       })
       .on("mousemove", function (event) {
         tooltip
@@ -107,7 +108,11 @@
       })
       .on("mouseout", function () {
         tooltip.style("visibility", "hidden");
-      });
+        d3.select(this).transition().duration(200).attr("r", 20); // Return to original size
+      })
+      .transition() // Animation for node growth
+      .duration(500)
+      .attr("r", 20); // Final radius
 
     // Add text labels for node identifiers
     nodesGroup
@@ -116,16 +121,33 @@
       .enter()
       .append("text")
       .attr("x", (d, i) => positions[i].x)
-      .attr("y", (d, i) => positions[i].y + 5) // Slightly below the center
+      .attr("y", (d, i) => positions[i].y + 35) // Place below the node
       .attr("text-anchor", "middle")
       .attr("font-size", "12px")
-      .attr("fill", "black")
-      .text((d) => d); // Use the node identifier (1, 2, 3, etc.)
+      .attr("fill", "#333")
+      .text((d) => d);
+
+    // Add voltage-dependent node coloring
+    nodesGroup
+      .selectAll("circle")
+      .attr("fill", (d) => {
+        const voltage = currentData[d]?.voltage || 0;
+        return voltage > 1
+          ? "lightgreen"
+          : voltage < 1
+            ? "lightcoral"
+            : "lightblue";
+      })
+      .attr("stroke", (d) => {
+        const voltage = currentData[d]?.voltage || 0;
+        return voltage > 1 ? "green" : voltage < 1 ? "red" : "darkblue";
+      });
   }
 </script>
 
 <svg bind:this={svg}></svg>
 
+<!-- Slider to change time steps -->
 <input
   type="range"
   min="0"
@@ -139,9 +161,25 @@
   svg {
     display: block;
     margin: auto;
+    max-width: 100%;
+    height: auto;
   }
 
   .tooltip {
-    pointer-events: none; /* Prevent tooltip from interfering with mouse events */
+    pointer-events: none;
+    position: absolute;
+    visibility: hidden;
+    background-color: white;
+    border: 1px solid #ccc;
+    padding: 8px;
+    border-radius: 5px;
+    box-shadow: 0px 0px 6px rgba(0, 0, 0, 0.1);
+    font-size: 12px;
+  }
+
+  input[type="range"] {
+    display: block;
+    margin: 20px auto;
+    width: 80%;
   }
 </style>
