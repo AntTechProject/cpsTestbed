@@ -1,8 +1,17 @@
-<!-- +page.svelte -->
 <script lang="ts">
+  import { onMount } from "svelte";
   import beprcLogo from "$lib/assets/images/beprc_logo.jpg";
   import pgcbLogo from "$lib/assets/images/pgcb_logo.png";
   import Simulation from "$lib/components/Simulation.svelte";
+
+  let showSimulation = false;
+
+  function runSimulation() {
+    showSimulation = false; // Ensure the simulation is hidden initially
+    setTimeout(() => {
+      showSimulation = true; // Show simulation after 3 seconds
+    }, 3000);
+  }
 </script>
 
 <div class="min-h-full">
@@ -41,28 +50,38 @@
           style="height: 600px;"
         ></iframe>
       </section>
+      <!-- Run Simulation Button -->
+      <div class="mt-4 flex justify-center">
+        <button
+          on:click={runSimulation}
+          class="rounded bg-blue-500 px-4 py-2 font-bold text-white"
+        >
+          Run Simulation
+        </button>
+      </div>
     </div>
 
     <!-- Bottom Section (Simulation Rendering) -->
-    <div class="relative flex flex-col px-4 sm:px-6 lg:px-8">
-      <section
-        class="w-full self-center rounded-lg bg-primary-foreground px-5 py-6 shadow sm:px-6"
-      >
-        <h2 class="mb-4 text-xl font-semibold">Simulation Visualization</h2>
-        <div
-          class="flex h-full flex-col items-center justify-center overflow-hidden"
+    {#if showSimulation}
+      <div class="relative flex flex-col px-4 sm:px-6 lg:px-8">
+        <section
+          class="w-full self-center rounded-lg bg-primary-foreground px-5 py-6 shadow sm:px-6"
         >
+          <h2 class="mb-4 text-xl font-semibold">Simulation Visualization</h2>
           <div
-            class="flex max-h-[600px] w-full flex-auto flex-col items-center justify-center overflow-auto"
+            class="flex h-full flex-col items-center justify-center overflow-hidden"
           >
-            <div class="min-h-0 w-full flex-auto">
-              <!-- Simulation component without the class prop and bind:this -->
-              <Simulation />
+            <div
+              class="flex max-h-[600px] w-full flex-auto flex-col items-center justify-center overflow-auto"
+            >
+              <div class="min-h-0 w-full flex-auto">
+                <Simulation />
+              </div>
             </div>
           </div>
-        </div>
-      </section>
-    </div>
+        </section>
+      </div>
+    {/if}
   </main>
 </div>
 
@@ -80,17 +99,5 @@
     header img {
       height: 24px;
     }
-  }
-
-  .tooltip {
-    pointer-events: none;
-    position: absolute;
-    visibility: hidden;
-    background-color: white;
-    border: 1px solid #ccc;
-    padding: 8px;
-    border-radius: 5px;
-    box-shadow: 0px 0px 6px rgba(0, 0, 0, 0.1);
-    font-size: 12px;
   }
 </style>
