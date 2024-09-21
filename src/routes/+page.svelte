@@ -1,3 +1,4 @@
+<!-- +page.svelte -->
 <script lang="ts">
   import beprcLogo from "$lib/assets/images/beprc_logo.jpg";
   import pgcbLogo from "$lib/assets/images/pgcb_logo.png";
@@ -5,6 +6,7 @@
 </script>
 
 <div class="min-h-full">
+  <!-- Header with logos -->
   <div class="bg-primary pb-32">
     <header class="py-14">
       <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
@@ -21,11 +23,16 @@
     </header>
   </div>
 
-  <main class="-mt-32 grid grid-cols-2 gap-4">
-    <div class="relative flex flex-col px-4 pr-0 sm:px-6 lg:px-8">
+  <!-- Main content (stacked vertically) -->
+  <main class="grid grid-cols-1 gap-4">
+    <!-- Top Section (Node-RED iframe) -->
+    <div class="relative flex flex-col px-4 sm:px-6 lg:px-8">
       <section
         class="w-full self-center rounded-lg bg-primary-foreground px-5 py-6 shadow sm:px-6"
       >
+        <h2 class="mb-4 text-xl font-semibold">
+          Real-Time Data (Node-RED Interface)
+        </h2>
         <iframe
           src="http://127.0.0.1:1881/"
           title="Node-RED canvas"
@@ -36,12 +43,23 @@
       </section>
     </div>
 
-    <div class="relative flex flex-col px-4 pr-0 sm:px-6 lg:px-8">
+    <!-- Bottom Section (Simulation Rendering) -->
+    <div class="relative flex flex-col px-4 sm:px-6 lg:px-8">
       <section
         class="w-full self-center rounded-lg bg-primary-foreground px-5 py-6 shadow sm:px-6"
       >
-        <div class="flex h-full flex-col overflow-hidden border">
-          <Simulation class="flex-grow" />
+        <h2 class="mb-4 text-xl font-semibold">Simulation Visualization</h2>
+        <div
+          class="flex h-full flex-col items-center justify-center overflow-hidden"
+        >
+          <div
+            class="flex max-h-[600px] w-full flex-auto flex-col items-center justify-center overflow-auto"
+          >
+            <div class="min-h-0 w-full flex-auto">
+              <!-- Simulation component without the class prop and bind:this -->
+              <Simulation />
+            </div>
+          </div>
         </div>
       </section>
     </div>
@@ -49,32 +67,30 @@
 </div>
 
 <style>
-  main {
-    text-align: center;
-    padding: 2rem;
+  /* Ensure no horizontal scroll */
+  body {
+    overflow-x: hidden;
   }
 
-  iframe {
-    height: 600px; /* Adjust height as needed */
-    width: 100%; /* Ensure iframe is responsive */
+  /* Additional clarity for smaller screens */
+  @media (max-width: 640px) {
+    header h1 {
+      font-size: 1.5rem;
+    }
+    header img {
+      height: 24px;
+    }
   }
 
-  .w-full {
-    width: 100%;
-  }
-
-  .h-full {
-    height: 100%; /* Ensure it fills the height of the parent */
-  }
-
-  .border {
-    height: 600px; /* Set a fixed height or adjust as necessary */
-    overflow: auto; /* Prevent overflow */
-  }
-
-  /* Ensure Simulation component takes full space and shrinks */
-  .flex-grow {
-    flex-grow: 1; /* Allow the component to grow and shrink as needed */
-    min-height: 0; /* Prevent overflow in flex container */
+  .tooltip {
+    pointer-events: none;
+    position: absolute;
+    visibility: hidden;
+    background-color: white;
+    border: 1px solid #ccc;
+    padding: 8px;
+    border-radius: 5px;
+    box-shadow: 0px 0px 6px rgba(0, 0, 0, 0.1);
+    font-size: 12px;
   }
 </style>
