@@ -11,7 +11,6 @@
   let timeKeys = Object.keys(genWatchData);
   let currentData = genWatchData[timeKeys[currentTime]];
 
-  // Function to update data based on current time
   function updateData() {
     currentData = genWatchData[timeKeys[currentTime]] || {};
     drawChart();
@@ -29,6 +28,7 @@
       .attr("height", height)
       .style("background-color", "#f9f9f9");
 
+    svgElement.append("g").attr("class", "edges");
     svgElement.append("g").attr("class", "nodes");
 
     // Create the tooltip
@@ -45,31 +45,56 @@
 
   function drawChart() {
     const svgElement = d3.select(svg);
+    const edgesGroup = svgElement.select(".edges");
     const nodesGroup = svgElement.select(".nodes");
 
-    // Clear previous nodes
+    // Clear previous elements
+    edgesGroup.selectAll("*").remove();
     nodesGroup.selectAll("*").remove();
 
     const nodes = Object.keys(currentData);
     const tooltip = d3.select(".tooltip");
 
-    // Create bars for each node
+    // Define positions for nodes (grid layout)
+    const positions = [
+      { x: width / 2, y: height / 6 }, // Central Bus
+      { x: width / 4, y: height / 3 }, // Node 1
+      { x: (width / 4) * 3, y: height / 3 }, // Node 2
+      { x: width / 4, y: (height / 6) * 5 }, // Node 3
+      { x: (width / 4) * 3, y: (height / 6) * 5 }, // Node 4
+      // Additional nodes can be added here
+    ].slice(0, nodes.length); // Limit to the number of available nodes
+
+    // Create edges
+    edgesGroup
+      .selectAll("line")
+      .data(nodes.slice(1)) // Skip first node for edges
+      .enter()
+      .append("line")
+      .attr("x1", positions[0].x) // Connect to central bus
+      .attr("y1", positions[0].y)
+      .attr("x2", (d, i) => positions[i + 1].x) // Connect to each node
+      .attr("y2", (d, i) => positions[i + 1].y)
+      .attr("stroke", "black")
+      .attr("stroke-width", 2)
+      .attr("stroke-dasharray", "5,5"); // Dashed line for clarity
+
+    // Create nodes as circles
     nodesGroup
-      .selectAll("rect")
+      .selectAll("circle")
       .data(nodes)
       .enter()
-      .append("rect")
-      .attr("x", (d, i) => 50 + i * 150) // Position the nodes
-      .attr("y", (d) => height / 2 - currentData[d].voltage * 30) // Position based on voltage
-      .attr("width", 50)
-      .attr("height", (d) => currentData[d].voltage * 60) // Height based on voltage
-      .attr("fill", "steelblue")
-      .attr("stroke", "black")
-      .attr("stroke-width", 1)
+      .append("circle")
+      .attr("cx", (d, i) => positions[i].x)
+      .attr("cy", (d, i) => positions[i].y)
+      .attr("r", 20) // Radius of the node
+      .attr("fill", "lightblue") // Lighter color for visibility
+      .attr("stroke", "darkblue") // Darker stroke for contrast
+      .attr("stroke-width", 2)
       .on("mouseover", function (event, d) {
         tooltip
           .html(
-            `Voltage: ${currentData[d].voltage}<br>Angle: ${currentData[d].angle}`,
+            `Voltage: ${currentData[d]?.voltage}<br>Angle: ${currentData[d]?.angle}`,
           )
           .style("visibility", "visible")
           .style("top", event.pageY + 5 + "px")
@@ -84,33 +109,18 @@
         tooltip.style("visibility", "hidden");
       });
 
-    // Add text labels for node numbers
+    // Add text labels for node identifiers
     nodesGroup
-      .selectAll("text.node-label")
+      .selectAll("text")
       .data(nodes)
       .enter()
       .append("text")
-      .attr("class", "node-label")
-      .attr("x", (d, i) => 50 + i * 150 + 25) // Center text horizontally
-      .attr("y", (d) => height / 2 - currentData[d].voltage * 30 - 10) // Position above the bar
+      .attr("x", (d, i) => positions[i].x)
+      .attr("y", (d, i) => positions[i].y + 5) // Slightly below the center
       .attr("text-anchor", "middle")
-      .text((d) => d) // Use the node identifier (1, 2, 3, etc.)
       .attr("font-size", "12px")
-      .attr("fill", "black");
-
-    // Optional text labels for angles
-    nodesGroup
-      .selectAll("text.angle-label")
-      .data(nodes)
-      .enter()
-      .append("text")
-      .attr("class", "angle-label")
-      .attr("x", (d, i) => 50 + i * 150 + 25) // Center text horizontally
-      .attr("y", height / 2 + 40)
-      .attr("text-anchor", "middle")
-      // .text((d) => `Angle: ${currentData[d].angle}`)
-      .attr("font-size", "12px")
-      .attr("fill", "black");
+      .attr("fill", "black")
+      .text((d) => d); // Use the node identifier (1, 2, 3, etc.)
   }
 </script>
 
