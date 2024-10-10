@@ -60,7 +60,6 @@
 		console.log("RERENDERED!!!");
 	});
 
-	$: voltage, console.log(`voltage for ${busNum} is ${voltage}`);
 </script>
 
 <div
@@ -71,9 +70,9 @@
 	`}
 >
 	<!-- voltage and angle: above the body -->
-	{#if typeof voltage !== 'undefined' && voltage !== null}
+	{#if typeof data.voltage !== 'undefined' && data.voltage !== null}
 		<div class="absolute bottom-full w-full text-black text-xs text-center items-center mx-auto">
-			{formatFloat(voltage)} kV ∠{formatFloat(angle)}°
+			{formatFloat(data.voltage)} kV ∠{formatFloat(data.angle)}°
 		</div>
 	{/if}
 
